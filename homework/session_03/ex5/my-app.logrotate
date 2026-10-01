@@ -1,0 +1,22 @@
+# /etc/logrotate.d/my-app
+# Xoay vòng log Nginx của site my-app lưu tại /opt/my-app/logs
+
+/opt/my-app/logs/*.log {
+    # Thư mục logs cho phép group www-data ghi nên logrotate yêu cầu
+    # chỉ định rõ user/group thực hiện việc xoay vòng.
+    su www-data www-data
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 www-data www-data
+    sharedscripts
+    postrotate
+        # Gửi USR1 cho master Nginx để mở lại file log mới
+        if [ -f /run/nginx.pid ]; then
+            kill -USR1 "$(cat /run/nginx.pid)"
+        fi
+    endscript
+}
